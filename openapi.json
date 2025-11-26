@@ -1,0 +1,518 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Bytrix API",
+    "description": "Production-ready backend service for file management with GPT integration",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Bytrix Support",
+      "url": "https://file.bytrix.my.id"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://file.bytrix.my.id/api/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:3000/api/v1",
+      "description": "Development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Supabase JWT token"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "error"
+          },
+          "message": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "GenerateTextRequest": {
+        "type": "object",
+        "required": ["prompt"],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Text prompt for GPT",
+            "maxLength": 4000
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Sampling temperature",
+            "default": 0.7,
+            "minimum": 0,
+            "maximum": 2
+          },
+          "max_tokens": {
+            "type": "integer",
+            "description": "Maximum tokens in response",
+            "default": 2000,
+            "minimum": 1,
+            "maximum": 4096
+          },
+          "model": {
+            "type": "string",
+            "description": "Model to use",
+            "default": "gpt-3.5-turbo"
+          }
+        }
+      },
+      "GenerateTextResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "created": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              },
+              "usage": {
+                "type": "object",
+                "properties": {
+                  "prompt_tokens": {
+                    "type": "integer"
+                  },
+                  "completion_tokens": {
+                    "type": "integer"
+                  },
+                  "total_tokens": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "FileUploadResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "filename": {
+                "type": "string"
+              },
+              "size": {
+                "type": "integer"
+              },
+              "mimetype": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        }
+      },
+      "FileMetadataResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "filename": {
+                "type": "string"
+              },
+              "mimetype": {
+                "type": "string"
+              },
+              "size": {
+                "type": "integer"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "signed_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "expires_in": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "UpdateFileRequest": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "New filename for the file",
+            "example": "updated_report.pdf"
+          }
+        }
+      },
+      "DeleteFileResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "message": {
+            "type": "string",
+            "example": "File deleted successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/gpt/generate": {
+      "post": {
+        "summary": "Generate text using GPT",
+        "operationId": "generateText",
+        "tags": ["GPT"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateTextRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Text generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateTextResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/upload": {
+      "post": {
+        "summary": "Upload a file to S3",
+        "operationId": "uploadFile",
+        "tags": ["Files"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No file provided"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/files/{id}": {
+      "get": {
+        "summary": "Get file metadata and signed URL",
+        "operationId": "getFile",
+        "tags": ["Files"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File metadata retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileMetadataResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update file metadata (e.g., rename)",
+        "operationId": "updateFile",
+        "tags": ["Files"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileMetadataResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a file",
+        "operationId": "deleteFile",
+        "tags": ["Files"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteFileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/file/{id}": {
+      "get": {
+        "summary": "Public redirect to file's signed URL",
+        "operationId": "servePublicFile",
+        "tags": ["Files"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Redirect to signed S3 URL"
+          },
+          "404": {
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

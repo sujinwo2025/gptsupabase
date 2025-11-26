@@ -1,0 +1,41 @@
+{
+  "name": "bytrix-api",
+  "version": "1.0.0",
+  "description": "Production-ready backend service for file management with GPT integration",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "build": "echo 'Build complete'",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "vercel-build": "echo 'Vercel build complete'",
+    "vercel-deploy": "vercel"
+  },
+  "keywords": [
+    "express",
+    "nodejs",
+    "s3",
+    "supabase",
+    "gpt"
+  ],
+  "author": "Bytrix",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.499.0",
+    "@aws-sdk/s3-request-presigner": "^3.499.0",
+    "@supabase/supabase-js": "^2.41.0",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.2.3",
+    "dotenv": "^16.3.1",
+    "joi": "^17.11.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

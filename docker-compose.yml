@@ -1,0 +1,112 @@
+services:
+  # Main application
+  bytrix-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bytrix-api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - LOG_LEVEL=info
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=${S3_REGION}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_BUCKET=${S3_BUCKET}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - GPT_API_KEY=${GPT_API_KEY}
+      - GPT_API_URL=${GPT_API_URL}
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - ./logs:/app/logs
+      - /app/node_modules
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Nginx reverse proxy with Let's Encrypt SSL
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: bytrix-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./ssl/letsencrypt:/etc/letsencrypt
+      - ./ssl/certbot:/var/www/certbot
+      - ./logs/nginx:/var/log/nginx
+    environment:
+      - DOMAIN=${DOMAIN:-file.bytrix.my.id}
+    networks:
+      - app-network
+    entrypoint: sh /docker-entrypoint.sh
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Certbot - Auto SSL renewal & generation
+  certbot:
+    image: certbot/certbot:latest
+    container_name: bytrix-certbot
+    restart: always
+    volumes:
+      - ./ssl/letsencrypt:/etc/letsencrypt
+      - ./ssl/certbot:/var/www/certbot
+      - ./certbot-entrypoint.sh:/docker-entrypoint.sh:ro
+    environment:
+      - DOMAIN=${DOMAIN:-file.bytrix.my.id}
+      - EMAIL=${EMAIL:-admin@example.com}
+    networks:
+      - app-network
+    entrypoint: sh /docker-entrypoint.sh
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  # Caddy - Backup reverse proxy with auto SSL
+  caddy:
+    image: caddy:2-alpine
+    container_name: bytrix-caddy
+    restart: always
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy/data:/data
+      - ./caddy/config:/config
+    environment:
+      - DOMAIN=${DOMAIN}
+    networks:
+      - app-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+networks:
+  app-network:
+    driver: bridge

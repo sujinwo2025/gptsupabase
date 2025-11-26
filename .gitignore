@@ -1,0 +1,54 @@
+# .gitignore
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime
+.pino-pretty/
+
+# Security: ignore SSL assets, certbot and Caddy state
+ssl/
+ssl/**
+caddy/
+caddy/**
+
+# System/service logs and runtime state
+logs/
+
+# Local env and secrets (ensure this remains ignored)
+.env
+.env.local
+.env.*.local
+

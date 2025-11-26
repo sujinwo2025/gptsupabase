@@ -1,0 +1,163 @@
+# API Requests Examples
+# Gunakan file ini sebagai referensi untuk test API dengan curl atau Postman
+
+# ============================================================
+# Configuration
+# ============================================================
+
+@baseUrl = http://localhost:3000
+@apiV1 = {{baseUrl}}/api/v1
+@jwtToken = your_jwt_token_here
+@fileId = your_file_id_here
+
+# ============================================================
+# 1. HEALTH CHECK
+# ============================================================
+
+### Health Check
+GET {{baseUrl}}/health
+
+### API Info
+GET {{apiV1}}
+
+# ============================================================
+# 2. GPT ENDPOINTS (Require Authentication)
+# ============================================================
+
+### Generate Text - Simple
+POST {{apiV1}}/gpt/generate
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "prompt": "Jelaskan tentang cloud computing"
+}
+
+### Generate Text - With Options
+POST {{apiV1}}/gpt/generate
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "prompt": "Write a professional email for project update",
+  "temperature": 0.5,
+  "max_tokens": 500,
+  "model": "gpt-3.5-turbo",
+  "top_p": 0.9,
+  "frequency_penalty": 0,
+  "presence_penalty": 0
+}
+
+### Generate Text - Creative Writing
+POST {{apiV1}}/gpt/generate
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "prompt": "Write a short story about a developer learning Node.js",
+  "temperature": 0.9,
+  "max_tokens": 1000,
+  "model": "gpt-3.5-turbo"
+}
+
+### Generate Text - Code Generation
+POST {{apiV1}}/gpt/generate
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "prompt": "Write a JavaScript function to calculate factorial",
+  "temperature": 0.2,
+  "max_tokens": 300,
+  "model": "gpt-3.5-turbo"
+}
+
+# ============================================================
+# 3. FILE ENDPOINTS
+# ============================================================
+
+### Upload File
+POST {{apiV1}}/files/upload
+Authorization: Bearer {{jwtToken}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="document.pdf"
+Content-Type: application/pdf
+
+< ./path/to/file.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Get File (with signed URL)
+GET {{apiV1}}/files/{{fileId}}
+
+### List Files (placeholder)
+GET {{apiV1}}/files
+Authorization: Bearer {{jwtToken}}
+
+### Delete File (placeholder)
+DELETE {{apiV1}}/files/{{fileId}}
+Authorization: Bearer {{jwtToken}}
+
+# ============================================================
+# ERROR TEST CASES
+# ============================================================
+
+### Missing Authentication
+POST {{apiV1}}/gpt/generate
+Content-Type: application/json
+
+{
+  "prompt": "test"
+}
+
+### Invalid Token
+POST {{apiV1}}/gpt/generate
+Authorization: Bearer invalid_token_12345
+Content-Type: application/json
+
+{
+  "prompt": "test"
+}
+
+### Missing Required Field
+POST {{apiV1}}/gpt/generate
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "temperature": 0.7
+}
+
+### Prompt Too Long
+POST {{apiV1}}/gpt/generate
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "prompt": "{{ repeat_text }}"
+}
+
+### Invalid Temperature
+POST {{apiV1}}/gpt/generate
+Authorization: Bearer {{jwtToken}}
+Content-Type: application/json
+
+{
+  "prompt": "test",
+  "temperature": 5.0
+}
+
+### Non-existent File
+GET {{apiV1}}/files/00000000-0000-0000-0000-000000000000
+
+# ============================================================
+# NOTES
+# ============================================================
+
+# 1. Replace {{baseUrl}} dengan URL server Anda
+# 2. Replace {{jwtToken}} dengan token Supabase JWT Anda
+# 3. Replace {{fileId}} dengan ID file yang valid
+# 4. Untuk Postman, gunakan tab "Tests" untuk automated validation
+# 5. Untuk VSCode REST Client, install extension "REST Client"
+# 6. Environment variables dapat dikonfigurasi di .env atau Postman environment
