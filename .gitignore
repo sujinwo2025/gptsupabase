@@ -41,8 +41,10 @@ Thumbs.db
 # Security: ignore SSL assets, certbot and Caddy state
 ssl/
 ssl/**
-caddy/
-caddy/**
+caddy/data/
+caddy/config/
+caddy/**/*.json
+caddy/**/autosave.json
 
 # System/service logs and runtime state
 logs/

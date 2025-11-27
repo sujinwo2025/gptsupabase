@@ -1,0 +1,58 @@
+# Caddy Configuration - Auto SSL with Let's Encrypt
+# Caddy automatically handles SSL certificate generation and renewal
+
+# Development/Local - no SSL
+(local) {
+    http://localhost:8080 {
+        reverse_proxy bytrix-api:3000 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-Host {host}
+        }
+    }
+}
+
+# Production - with auto SSL
+(production) {
+    {$DOMAIN} {
+        # Security headers
+        header / Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        header / X-Frame-Options "SAMEORIGIN"
+        header / X-Content-Type-Options "nosniff"
+        header / X-XSS-Protection "1; mode=block"
+        
+        # Reverse proxy to backend
+        reverse_proxy bytrix-api:3000 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-Host {host}
+            header_up X-Forwarded-Port {server_port}
+            
+            # WebSocket support
+            header_up Connection {http.request.header.Connection}
+            header_up Upgrade {http.request.header.Upgrade}
+            
+            # Transport timeouts (use supported subdirectives)
+            transport http {
+                read_timeout 60s
+                write_timeout 60s
+                dial_timeout 10s
+            }
+        }
+        
+        # Compression
+        encode gzip
+        
+        # (Timeouts handled via transport in the main reverse_proxy block)
+    }
+    
+    # Redirect www to non-www (optional)
+    www.{$DOMAIN} {
+        redir https://{$DOMAIN}{uri}
+    }
+}
+
+# Auto-select based on DOMAIN environment variable
+import production
