@@ -25,7 +25,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "Supabase JWT token"
+        "description": "Supabase JWT, Service Role Key, or local JWT (accepted for API authentication)"
       }
     },
     "schemas": {
@@ -219,9 +219,99 @@
           }
         }
       }
+      ,
+      "DevTokenRequest": {
+        "type": "object",
+        "required": ["user_id"],
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "ID of the user for whom to create a dev token"
+          },
+          "expires_in": {
+            "type": "integer",
+            "description": "Token lifetime in seconds (optional). If omitted a sensible default is used.",
+            "example": 3600
+          }
+        }
+      },
+      "DevTokenResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "access_token": {
+                "type": "string",
+                "description": "JWT to be used as bearer token"
+              },
+              "token_type": {
+                "type": "string",
+                "example": "bearer"
+              },
+              "expires_in": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "paths": {
+    "/auth/dev-token": {
+      "post": {
+        "summary": "Create a short-lived developer token for testing",
+        "operationId": "createDevToken",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DevTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dev token created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DevTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/gpt/generate": {
       "post": {
         "summary": "Generate text using GPT",

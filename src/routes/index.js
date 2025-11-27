@@ -1,5 +1,6 @@
 import express from 'express';
 import logger from '../utils/logger.js';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
@@ -23,6 +24,26 @@ router.get('/', (req, res) => {
       gpt: '/api/v1/gpt',
     },
   });
+});
+
+// Development helper: generate a short-lived dev JWT token
+// Note: This endpoint should be disabled or protected in production environments
+router.post('/auth/dev-token', (req, res) => {
+  if (process.env.NODE_ENV === 'production' && process.env.DISABLE_DEV_TOKEN !== 'false') {
+    return res.status(403).json({ status: 'error', message: 'Dev token disabled in production' });
+  }
+
+  const jwtSecret = process.env.JWT_SECRET || 'dev-secret-key';
+  const expirySeconds = parseInt(process.env.JWT_EXPIRY || '604800', 10); // default 7 days
+
+  const payload = {
+    user_id: req.body.user_id || 'dev-user',
+    role: req.body.role || 'authenticated',
+  };
+
+  const token = jwt.sign(payload, jwtSecret, { expiresIn: expirySeconds });
+
+  res.json({ status: 'ok', token, expires_in: expirySeconds });
 });
 
 export default router;
