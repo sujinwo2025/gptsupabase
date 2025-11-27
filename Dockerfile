@@ -6,8 +6,8 @@ WORKDIR /build
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (prefer lockfile, fallback to install)
+RUN npm ci --only=production || npm install --only=production
 
 # Production image
 FROM node:18-alpine

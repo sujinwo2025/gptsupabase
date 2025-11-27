@@ -54,5 +54,5 @@
     }
 }
 
-# Auto-select based on DOMAIN environment variable
-import production
+# Auto-select: gunakan mode lokal agar tidak mencoba ACME
+import local
