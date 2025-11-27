@@ -4,6 +4,10 @@
 - Bytrix adalah backend layanan manajemen file dengan integrasi GPT.
 - Dijalankan menggunakan Docker + docker-compose dan dilindungi oleh reverse proxy (Nginx/Caddy) serta otomatisasi SSL (Certbot/Caddy).
 
+- ```git clone https://github.com/sujinwo2025/gptsupabase.git gpt```
+
+   ```cd gpt```
+
  Isi penting
 - Lokasi proyek: `c:\Users\Administrator\Documents\Groq`
 - Entrypoint aplikasi: `src/index.js`
