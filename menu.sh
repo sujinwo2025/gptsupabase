@@ -112,10 +112,13 @@ gpt_generate() {
   fi
   read -rp "Prompt GPT: " prompt || true
   prompt=${prompt:-Hello, how are you?}
+  # Bangun payload JSON secara aman menggunakan jq untuk menghindari error kutip
+  local payload
+  payload=$(jq -Rn --arg p "$prompt" '{prompt:$p, max_tokens:128}')
   RESP=$(curl -sS -X POST "${BASE_URL}${API_BASE}/gpt/generate" \
     -H "Authorization: Bearer $(cat .dev-token)" \
     -H 'Content-Type: application/json' \
-    -d "{\"prompt\":\"${prompt//"/}\",\"max_tokens\":128}") || true
+    -d "$payload") || true
   echo "$RESP" | jq . 2>/dev/null || echo "$RESP"
   pause
 }
